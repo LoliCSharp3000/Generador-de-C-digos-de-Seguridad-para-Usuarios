@@ -1,0 +1,56 @@
+# ======================
+# VS Code
+# ======================
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# ======================
+# Java compilados
+# ======================
+*.class
+*.jar
+*.war
+*.ear
+
+# ======================
+# Directorios de build
+# ======================
+bin/
+out/
+target/
+build/
+
+# ======================
+# Logs
+# ======================
+*.log
+
+# ======================
+# SO
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# Dependencias
+# ======================
+*.iml
+.idea/
+
+# ======================
+# Maven / Gradle
+# ======================
+.gradle/
+mvnw
+mvnw.cmd
+gradlew
+gradlew.bat
+
+# ======================
+# Temporales
+# ======================
+*.tmp
+*.swp
+*.bak

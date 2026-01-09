@@ -11,14 +11,16 @@ public class Main {
         
         while (fun) {
             try {
-                System.out.println("Quiere hacer: 1.crear usuario  2.ver mis datos  3.Salir");
+                System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir");
                 String input = sc.nextLine();
                 int opc = Integer.parseInt(input);
                 switch (opc) {
                     case 1:
+                        System.out.println("Dime un que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
+                        String inp = sc.nextLine();
+                        int opci = Integer.parseInt(inp);
                         System.out.println("Ingrese su nombre");
-                        Usuario usuario = new Usuario(sc.nextLine());
-                        lista.add(usuario);
+                        Usuario usuario = new Usuario(sc.nextLine(), opci);
                         if (!lista.add(usuario)) {
                             System.out.println("Ese usuario ya existe");
                         }

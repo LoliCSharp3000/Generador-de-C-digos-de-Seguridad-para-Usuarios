@@ -6,18 +6,39 @@ public final class Usuario {
     private final String nombre;
     private final String codigoSeguridad;
     private static int totalUsuarios;
+    public enum TipoDeUsuario{
+        NORMAL(6),
+        PREMIUM(8),
+        ADMIN(12);
 
-    public Usuario(String nombre){
-        if (nombre.length() < 3) {
-            throw new IllegalArgumentException("El nombre es demasiado corto");
+        private final int longitudDeCodigo;
+
+        TipoDeUsuario(int longitudDeCodigo){
+            this.longitudDeCodigo = longitudDeCodigo;
         }
 
+        public int getLongitudDeCodigo() {
+            return longitudDeCodigo;
+        }
+    }
+    private final TipoDeUsuario tipoDeUsuario;
+
+    public Usuario(String nombre, int opc){
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("Debes poner el nombre correctamente");
-        } else{
-            this.nombre = nombre;
         }
-        this.codigoSeguridad = RandomStringUtils.randomAlphanumeric(8);
+        if (nombre.trim().length() < 3) {
+            throw new IllegalArgumentException("El nombre es demasiado corto");
+        }
+        this.nombre = nombre;
+        TipoDeUsuario tipoDeUsuario = switch (opc) {
+            case 1 -> tipoDeUsuario = TipoDeUsuario.NORMAL;
+            case 2 -> tipoDeUsuario = TipoDeUsuario.PREMIUM;
+            case 3 -> tipoDeUsuario = TipoDeUsuario.ADMIN;
+            default -> throw new IllegalArgumentException("Pon el numero correcto");
+        };
+        this.tipoDeUsuario = tipoDeUsuario;
+        this.codigoSeguridad = RandomStringUtils.randomAlphanumeric(tipoDeUsuario.longitudDeCodigo);
         totalUsuarios++;
     }
 
@@ -33,7 +54,7 @@ public final class Usuario {
         return totalUsuarios;
     }
     public String mostrarInfo() {
-        return "Nombre: " + nombre + " | Código: " + codigoSeguridad;
+        return "Nombre: " + nombre + " | Tipo: " + tipoDeUsuario + " | Código: " + codigoSeguridad;
     }
 
     @Override
