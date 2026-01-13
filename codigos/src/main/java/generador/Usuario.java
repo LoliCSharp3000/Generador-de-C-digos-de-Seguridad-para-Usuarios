@@ -1,5 +1,7 @@
 package generador;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 
 public final class Usuario {
@@ -22,6 +24,7 @@ public final class Usuario {
         }
     }
     private final TipoDeUsuario tipoDeUsuario;
+    private final LocalDate fechaDeCreacion;
 
     public Usuario(String nombre, int opc){
         if (nombre == null || nombre.trim().isEmpty()) {
@@ -31,17 +34,25 @@ public final class Usuario {
             throw new IllegalArgumentException("El nombre es demasiado corto");
         }
         this.nombre = nombre;
-        TipoDeUsuario tipoDeUsuario = switch (opc) {
-            case 1 -> tipoDeUsuario = TipoDeUsuario.NORMAL;
-            case 2 -> tipoDeUsuario = TipoDeUsuario.PREMIUM;
-            case 3 -> tipoDeUsuario = TipoDeUsuario.ADMIN;
+        TipoDeUsuario tipo;
+        switch (opc) {
+            case 1 -> tipo = TipoDeUsuario.NORMAL;
+            case 2 -> tipo = TipoDeUsuario.PREMIUM;
+            case 3 -> tipo = TipoDeUsuario.ADMIN;
             default -> throw new IllegalArgumentException("Pon el numero correcto");
         };
-        this.tipoDeUsuario = tipoDeUsuario;
+        this.tipoDeUsuario = tipo;
         this.codigoSeguridad = RandomStringUtils.randomAlphanumeric(tipoDeUsuario.longitudDeCodigo);
+        this.fechaDeCreacion = LocalDate.now();
         totalUsuarios++;
     }
 
+    public LocalDate getFechaDeCreacion() {
+        return fechaDeCreacion;
+    }
+    public TipoDeUsuario getTipoDeUsuario() {
+        return tipoDeUsuario;
+    }
     public String getNombre() {
         return nombre;
     }
@@ -54,7 +65,26 @@ public final class Usuario {
         return totalUsuarios;
     }
     public String mostrarInfo() {
-        return "Nombre: " + nombre + " | Tipo: " + tipoDeUsuario + " | Código: " + codigoSeguridad;
+        return  "Nombre: " + nombre +
+                " | Tipo: " + tipoDeUsuario +
+                " | Código: " + codigoSeguridad +
+                " | Fecha de creacion: " + fechaDeCreacion +
+                " | Días desde creación: " + diasDespuesDeCreacion();
+    }
+
+
+    public long diasDespuesDeCreacion(){
+        return ChronoUnit.DAYS.between(fechaDeCreacion, LocalDate.now());
+    }
+
+    public String toJSON() {
+        return "{\n" +
+               "  \"nombre\": \"" + nombre + "\",\n" +
+               "  \"tipoDeUsuario\": \"" + tipoDeUsuario + "\",\n" +
+               "  \"codigoSeguridad\": \"" + codigoSeguridad + "\",\n" +
+               "  \"fechaDeCreacion\": \"" + fechaDeCreacion + "\",\n" +
+               "  \"diasDesdeCreacion\": " + diasDespuesDeCreacion() + "\n" +
+               "}";
     }
 
     @Override
