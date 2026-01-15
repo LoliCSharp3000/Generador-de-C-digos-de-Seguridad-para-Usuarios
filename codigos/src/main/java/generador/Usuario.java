@@ -46,7 +46,9 @@ public final class Usuario {
         this.fechaDeCreacion = LocalDate.now();
         totalUsuarios++;
     }
-
+    public static void setTotalUsuarios(int totalUsuarios) {
+        Usuario.totalUsuarios = totalUsuarios;
+    }
     public LocalDate getFechaDeCreacion() {
         return fechaDeCreacion;
     }
@@ -75,16 +77,6 @@ public final class Usuario {
 
     public long diasDespuesDeCreacion(){
         return ChronoUnit.DAYS.between(fechaDeCreacion, LocalDate.now());
-    }
-
-    public String toJSON() {
-        return "{\n" +
-               "  \"nombre\": \"" + nombre + "\",\n" +
-               "  \"tipoDeUsuario\": \"" + tipoDeUsuario + "\",\n" +
-               "  \"codigoSeguridad\": \"" + codigoSeguridad + "\",\n" +
-               "  \"fechaDeCreacion\": \"" + fechaDeCreacion + "\",\n" +
-               "  \"diasDesdeCreacion\": " + diasDespuesDeCreacion() + "\n" +
-               "}";
     }
 
     @Override
