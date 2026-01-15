@@ -9,7 +9,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
     private static final String FILE_PATH = "usuarios.json";
@@ -20,12 +21,12 @@ public class Main {
 
 
     public static void main(String[] args) {
-        HashSet<Usuario> lista = cargarUsuarios();
+        Map<String, Usuario> lista = cargarUsuarios();
         boolean fun = true;
         try(Scanner sc = new Scanner(System.in)){
             while (fun) {
                 try {
-                    System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir");
+                    System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir    4.Encontrar usuario por código de seguridad");
                     String input = sc.nextLine();
                     int opc = Integer.parseInt(input);
                     switch (opc) {
@@ -35,9 +36,10 @@ public class Main {
                             int opci = Integer.parseInt(inp);
                             System.out.println("Ingrese su nombre");
                             Usuario usuario = new Usuario(sc.nextLine(), opci);
-                            if (lista.add(usuario)) {
+                            if (!lista.containsKey(usuario.getCodigoSeguridad())) {
+                                lista.put(usuario.getCodigoSeguridad(), usuario);
                                 guardarUsuario(lista);
-                                System.out.println("Total usuarios: " + Usuario.getTotalUsuarios());
+                                System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad() + " Total usuarios: " + Usuario.getTotalUsuarios());
                             }else{
                                 System.out.println("Ese usuario ya existe");
                             }
@@ -46,7 +48,7 @@ public class Main {
                             if(lista.isEmpty()){
                                 System.out.println("No hay usuarios creados aún");
                             } else {
-                                for (Usuario u : lista) {
+                                for (Usuario u : lista.values()) {
                                     System.out.println(u.mostrarInfo());
                                 }
                                 System.out.println("Total usuarios: " + Usuario.getTotalUsuarios());
@@ -54,6 +56,16 @@ public class Main {
                             break;
                         case 3:
                             fun = false;
+                            break;
+                        case 4:
+                            System.out.println("Ingrese el código de seguridad del usuario:");
+                            String codigo = sc.nextLine().trim();
+                            Usuario encontrado = lista.get(codigo);
+                            if (encontrado != null) {
+                                System.out.println("Usuario encontrado: " + encontrado.mostrarInfo());
+                            } else {
+                                System.out.println("No se encontró ningún usuario con ese código de seguridad.");
+                            }
                             break;
                         default:
                             System.out.println("Porfavor pon el numero correcto");
@@ -70,7 +82,7 @@ public class Main {
         }
     }
 
-    private static void guardarUsuario(HashSet<Usuario> lista){
+    private static void guardarUsuario(Map<String, Usuario> lista){
         try(FileWriter writer = new FileWriter(FILE_PATH)) {
             gson.toJson(lista, writer);
         } catch (IOException e) {
@@ -78,19 +90,13 @@ public class Main {
         }
     }
 
-    private static HashSet<Usuario> cargarUsuarios(){
+    private static Map<String, Usuario> cargarUsuarios(){
         File file = new File(FILE_PATH);
-        if (!file.exists() || file.length() == 0) {
-            try (FileWriter writer = new FileWriter(file)){
-                writer.write("[]");
-            } catch (IOException e) {
-                System.out.println("No se pudo inicializar JSON: " + e.getMessage());
-            }
-            return new HashSet<>();
-        }
+        if (!file.exists() || file.length() == 0) return new HashMap<>();
+
         try(FileReader reader = new FileReader(file)) {
-            HashSet<Usuario> usuarios = gson.fromJson(reader, new TypeToken<HashSet<Usuario>>(){}.getType());
-            if (usuarios == null) usuarios = new HashSet<>();
+            Map<String, Usuario> usuarios = gson.fromJson(reader, new TypeToken<HashMap<String, Usuario>>(){}.getType());
+            if (usuarios == null) usuarios = new HashMap<>();
             Usuario.setTotalUsuarios(usuarios.size());
             return usuarios;
         } catch (IOException e) {
@@ -99,6 +105,6 @@ public class Main {
             System.out.println("JSON inválido o vacío, creando lista vacía...");
         }
 
-        return new HashSet<>();
+        return new HashMap<>();
     }
 }
