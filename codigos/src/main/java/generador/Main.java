@@ -26,7 +26,7 @@ public class Main {
         try(Scanner sc = new Scanner(System.in)){
             while (fun) {
                 try {
-                    System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir    4.Encontrar usuario por código de seguridad");
+                    System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir    4.Encontrar usuario por código de seguridad  5. Verificar inactividad");
                     String input = sc.nextLine();
                     int opc = Integer.parseInt(input);
                     switch (opc) {
@@ -62,10 +62,20 @@ public class Main {
                             String codigo = sc.nextLine().trim();
                             Usuario encontrado = lista.get(codigo);
                             if (encontrado != null) {
+                                encontrado.actualizarActividad();
+                                guardarUsuario(lista);
                                 System.out.println("Usuario encontrado: " + encontrado.mostrarInfo());
                             } else {
                                 System.out.println("No se encontró ningún usuario con ese código de seguridad.");
                             }
+                            break;
+                        case 5:
+                            System.out.println("Verificando inactividad...");
+                            for (Usuario u : lista.values()) {
+                                u.marcarInactivoSiNecesario();
+                            }
+                            guardarUsuario(lista);
+                            System.out.println("Verificación completada. Usuarios inactivos marcados.");
                             break;
                         default:
                             System.out.println("Porfavor pon el numero correcto");
@@ -98,6 +108,9 @@ public class Main {
             Map<String, Usuario> usuarios = gson.fromJson(reader, new TypeToken<HashMap<String, Usuario>>(){}.getType());
             if (usuarios == null) usuarios = new HashMap<>();
             Usuario.setTotalUsuarios(usuarios.size());
+            for (Usuario u : usuarios.values()) {
+                u.marcarInactivoSiNecesario();
+            }
             return usuarios;
         } catch (IOException e) {
             System.out.println("No se pudo cargar usuarios: " + e.getMessage()); 

@@ -23,15 +23,27 @@ public final class Usuario {
             return longitudDeCodigo;
         }
     }
+    public enum EstadoUsuario{
+        ACTIVO,
+        INACTIVO,
+        BLOQUEADO
+    }
     private final TipoDeUsuario tipoDeUsuario;
+    private EstadoUsuario estadoUsuario;
     private final LocalDate fechaDeCreacion;
+    private LocalDate ultimaActividad;
+    private final int min_nombre = 3;
+    private final int max_dias_inactivo = 30;
 
     public Usuario(String nombre, int opc){
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("Debes poner el nombre correctamente");
         }
-        if (nombre.trim().length() < 3) {
+        if (nombre.trim().length() < min_nombre) {
             throw new IllegalArgumentException("El nombre es demasiado corto");
+        }
+        if (nombre.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("El nombre no puede contener números");
         }
         this.nombre = nombre;
         TipoDeUsuario tipo;
@@ -42,8 +54,10 @@ public final class Usuario {
             default -> throw new IllegalArgumentException("Pon el numero correcto");
         };
         this.tipoDeUsuario = tipo;
+        this.estadoUsuario = EstadoUsuario.ACTIVO;
         this.codigoSeguridad = RandomStringUtils.randomAlphanumeric(tipoDeUsuario.longitudDeCodigo);
         this.fechaDeCreacion = LocalDate.now();
+        this.ultimaActividad = LocalDate.now();
         totalUsuarios++;
     }
     public static void setTotalUsuarios(int totalUsuarios) {
@@ -54,6 +68,12 @@ public final class Usuario {
     }
     public TipoDeUsuario getTipoDeUsuario() {
         return tipoDeUsuario;
+    }
+    public EstadoUsuario getEstadoUsuario() {
+        return estadoUsuario;
+    }
+    public LocalDate getUltimaActividad() {
+        return ultimaActividad;
     }
     public String getNombre() {
         return nombre;
@@ -66,11 +86,25 @@ public final class Usuario {
     public static int getTotalUsuarios() {
         return totalUsuarios;
     }
+    public void actualizarActividad() {
+        this.ultimaActividad = LocalDate.now();
+        this.estadoUsuario = EstadoUsuario.ACTIVO;
+    }
+    public boolean esInactivo() {
+        return ChronoUnit.DAYS.between(ultimaActividad, LocalDate.now()) > max_dias_inactivo;
+    }
+    public void marcarInactivoSiNecesario() {
+        if (esInactivo()) {
+            estadoUsuario = EstadoUsuario.INACTIVO;
+        }
+    }
     public String mostrarInfo() {
         return  "Nombre: " + nombre +
                 " | Tipo: " + tipoDeUsuario +
                 " | Código: " + codigoSeguridad +
+                " | Estado: " + estadoUsuario +
                 " | Fecha de creacion: " + fechaDeCreacion +
+                " | Última actividad: " + ultimaActividad +
                 " | Días desde creación: " + diasDespuesDeCreacion();
     }
 
