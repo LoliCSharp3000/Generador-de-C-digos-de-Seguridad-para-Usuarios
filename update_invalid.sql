@@ -1,0 +1,1 @@
+UPDATE usuarios SET estado = 'ACTIVO' WHERE estado NOT IN ('ACTIVO','INACTIVO','BLOQUEADO');

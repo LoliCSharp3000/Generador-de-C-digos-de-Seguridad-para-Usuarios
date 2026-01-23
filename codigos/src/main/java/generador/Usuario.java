@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 
-public final class Usuario {
+public class Usuario {
     private final String nombre;
     private final String codigoSeguridad;
     private static int totalUsuarios;
@@ -55,10 +55,45 @@ public final class Usuario {
         };
         this.tipoDeUsuario = tipo;
         this.estadoUsuario = EstadoUsuario.ACTIVO;
-        this.codigoSeguridad = RandomStringUtils.randomAlphanumeric(tipoDeUsuario.longitudDeCodigo);
+        this.codigoSeguridad = generarCodigoSeguro(tipoDeUsuario.longitudDeCodigo);
         this.fechaDeCreacion = LocalDate.now();
         this.ultimaActividad = LocalDate.now();
         totalUsuarios++;
+    }
+
+    private Usuario(String nombre, TipoDeUsuario tipo, EstadoUsuario estado, String codigo, LocalDate fechaCreacion, LocalDate ultimaActividad) {
+        this.nombre = nombre;
+        this.tipoDeUsuario = tipo;
+        this.estadoUsuario = estado;
+        this.codigoSeguridad = codigo;
+        this.fechaDeCreacion = fechaCreacion;
+        this.ultimaActividad = ultimaActividad;
+    }
+
+    public static Usuario fromDB(String nombre, String tipoStr, String estadoStr, String codigoSeguridad, LocalDate fechaCreacion, LocalDate ultimaActividad) {
+        TipoDeUsuario tipo;
+        try {
+            tipo = TipoDeUsuario.valueOf(tipoStr);
+        } catch (IllegalArgumentException e) {
+            tipo = TipoDeUsuario.NORMAL; // default
+        }
+        EstadoUsuario estado;
+        if (estadoStr != null) {
+            try {
+                estado = EstadoUsuario.valueOf(estadoStr);
+            } catch (IllegalArgumentException e) {
+                estado = EstadoUsuario.ACTIVO; // default
+            }
+        } else {
+            estado = EstadoUsuario.ACTIVO; // default if null
+        }
+        if (fechaCreacion == null) {
+            fechaCreacion = LocalDate.now();
+        }
+        if (ultimaActividad == null) {
+            ultimaActividad = LocalDate.now();
+        }
+        return new Usuario(nombre, tipo, estado, codigoSeguridad, fechaCreacion, ultimaActividad);
     }
     public static void setTotalUsuarios(int totalUsuarios) {
         Usuario.totalUsuarios = totalUsuarios;
@@ -98,19 +133,34 @@ public final class Usuario {
             estadoUsuario = EstadoUsuario.INACTIVO;
         }
     }
-    public String mostrarInfo() {
-        return  "Nombre: " + nombre +
-                " | Tipo: " + tipoDeUsuario +
-                " | Código: " + codigoSeguridad +
-                " | Estado: " + estadoUsuario +
-                " | Fecha de creacion: " + fechaDeCreacion +
-                " | Última actividad: " + ultimaActividad +
-                " | Días desde creación: " + diasDespuesDeCreacion();
+    @Override
+    public String toString() {
+        return """
+           Usuario {
+             nombre='%s',
+             tipo=%s,
+             estado=%s,
+             codigo='%s',
+             creado=%s,
+             diasActivo=%d
+           }
+           """.formatted(
+                nombre,
+                tipoDeUsuario,
+                estadoUsuario,
+                codigoSeguridad,
+                fechaDeCreacion,
+                diasDespuesDeCreacion()
+           );
     }
 
 
     public long diasDespuesDeCreacion(){
-        return ChronoUnit.DAYS.between(fechaDeCreacion, LocalDate.now());
+        try {
+            return ChronoUnit.DAYS.between(fechaDeCreacion, LocalDate.now());
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
     @Override
@@ -124,5 +174,9 @@ public final class Usuario {
     @Override
     public int hashCode() {
         return codigoSeguridad.hashCode();
+    }
+
+    private static String generarCodigoSeguro(int longitud){
+        return RandomStringUtils.random(longitud, true, true).toUpperCase();
     }
 }

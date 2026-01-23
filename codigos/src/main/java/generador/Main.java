@@ -1,27 +1,11 @@
 package generador;
 
 import java.util.Scanner;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-    private static final String FILE_PATH = "usuarios.json";
-    private static Gson gson = new GsonBuilder()
-        .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
-        .setPrettyPrinting()
-        .create();
-
-
     public static void main(String[] args) {
-        Map<String, Usuario> lista = cargarUsuarios();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         boolean fun = true;
         try(Scanner sc = new Scanner(System.in)){
             while (fun) {
@@ -38,7 +22,7 @@ public class Main {
                             Usuario usuario = new Usuario(sc.nextLine(), opci);
                             if (!lista.containsKey(usuario.getCodigoSeguridad())) {
                                 lista.put(usuario.getCodigoSeguridad(), usuario);
-                                guardarUsuario(lista);
+                                UsuarioDAO.insertar(usuario);
                                 System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad() + " Total usuarios: " + Usuario.getTotalUsuarios());
                             }else{
                                 System.out.println("Ese usuario ya existe");
@@ -49,7 +33,7 @@ public class Main {
                                 System.out.println("No hay usuarios creados aún");
                             } else {
                                 for (Usuario u : lista.values()) {
-                                    System.out.println(u.mostrarInfo());
+                                    System.out.println(u.toString());
                                 }
                                 System.out.println("Total usuarios: " + Usuario.getTotalUsuarios());
                             }
@@ -63,8 +47,8 @@ public class Main {
                             Usuario encontrado = lista.get(codigo);
                             if (encontrado != null) {
                                 encontrado.actualizarActividad();
-                                guardarUsuario(lista);
-                                System.out.println("Usuario encontrado: " + encontrado.mostrarInfo());
+                                UsuarioDAO.updateActividad(codigo);
+                                System.out.println("Usuario encontrado: " + encontrado.toString());
                             } else {
                                 System.out.println("No se encontró ningún usuario con ese código de seguridad.");
                             }
@@ -73,8 +57,8 @@ public class Main {
                             System.out.println("Verificando inactividad...");
                             for (Usuario u : lista.values()) {
                                 u.marcarInactivoSiNecesario();
+                                UsuarioDAO.updateEstado(u.getCodigoSeguridad(), u.getEstadoUsuario());
                             }
-                            guardarUsuario(lista);
                             System.out.println("Verificación completada. Usuarios inactivos marcados.");
                             break;
                         default:
@@ -87,37 +71,9 @@ public class Main {
                     System.out.println("Error: " + e.getMessage());
                 } catch(Exception e){
                     System.out.println("Error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
-    }
-
-    private static void guardarUsuario(Map<String, Usuario> lista){
-        try(FileWriter writer = new FileWriter(FILE_PATH)) {
-            gson.toJson(lista, writer);
-        } catch (IOException e) {
-            System.out.println("Error al guardar usuarios: " + e.getMessage());
-        }
-    }
-
-    private static Map<String, Usuario> cargarUsuarios(){
-        File file = new File(FILE_PATH);
-        if (!file.exists() || file.length() == 0) return new HashMap<>();
-
-        try(FileReader reader = new FileReader(file)) {
-            Map<String, Usuario> usuarios = gson.fromJson(reader, new TypeToken<HashMap<String, Usuario>>(){}.getType());
-            if (usuarios == null) usuarios = new HashMap<>();
-            Usuario.setTotalUsuarios(usuarios.size());
-            for (Usuario u : usuarios.values()) {
-                u.marcarInactivoSiNecesario();
-            }
-            return usuarios;
-        } catch (IOException e) {
-            System.out.println("No se pudo cargar usuarios: " + e.getMessage()); 
-        } catch(com.google.gson.JsonSyntaxException | com.google.gson.JsonIOException e){
-            System.out.println("JSON inválido o vacío, creando lista vacía...");
-        }
-
-        return new HashMap<>();
     }
 }
