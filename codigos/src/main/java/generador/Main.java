@@ -47,7 +47,6 @@ public class Main {
                             Usuario encontrado = lista.get(codigo);
                             if (encontrado != null) {
                                 encontrado.actualizarActividad();
-                                UsuarioDAO.updateActividad(codigo);
                                 System.out.println("Usuario encontrado: " + encontrado.toString());
                             } else {
                                 System.out.println("No se encontró ningún usuario con ese código de seguridad.");
@@ -56,9 +55,10 @@ public class Main {
                         case 5:
                             System.out.println("Verificando inactividad...");
                             for (Usuario u : lista.values()) {
-                                if (u.esInactivo()) {
-                                    u.marcarInactivoSiNecesario();
-                                    UsuarioDAO.updateEstado(u.getCodigoSeguridad(), u.getEstadoUsuario());
+                                Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
+                                u.actualizarEstadoPorInactividad();
+                                if (estadoAnterior != u.getEstadoUsuario()) {
+                                    UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), estadoAnterior, u.getUltimaActividad());
                                 }
                             }
                             System.out.println("Verificación completada. Usuarios inactivos marcados.");

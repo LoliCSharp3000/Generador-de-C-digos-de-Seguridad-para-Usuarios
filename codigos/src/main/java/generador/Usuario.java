@@ -33,6 +33,7 @@ public class Usuario {
     private LocalDate ultimaActividad;
     private static final int min_nombre = 3;
     private static final int max_dias_inactivo = 30;
+    private static final int max_dias_bloqueado = 60;
 
     public Usuario(String nombre, int opc){
         if (nombre == null || nombre.trim().isEmpty()) {
@@ -102,6 +103,9 @@ public class Usuario {
     }
 
     public void actualizarActividad() {
+        if (estadoUsuario == EstadoUsuario.BLOQUEADO) {
+            throw new IllegalStateException("No se puede actualizar la actividad de un usuario bloqueado");
+        }
         this.ultimaActividad = LocalDate.now();
         this.estadoUsuario = EstadoUsuario.ACTIVO;
     }
@@ -154,5 +158,16 @@ public class Usuario {
 
     private static String generarCodigoSeguro(int longitud){
         return RandomStringUtils.random(longitud, true, true).toUpperCase();
+    }
+
+    public void actualizarEstadoPorInactividad() {
+        long diasInactivo = ChronoUnit.DAYS.between(ultimaActividad, LocalDate.now());
+        if (diasInactivo > max_dias_bloqueado) {
+            estadoUsuario = EstadoUsuario.BLOQUEADO;
+        } else if (diasInactivo > max_dias_inactivo) {
+            estadoUsuario = EstadoUsuario.INACTIVO;
+        } else {
+            estadoUsuario = EstadoUsuario.ACTIVO;
+        }
     }
 }

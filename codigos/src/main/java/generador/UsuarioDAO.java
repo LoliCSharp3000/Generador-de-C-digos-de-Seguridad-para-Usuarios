@@ -54,30 +54,21 @@ public class UsuarioDAO {
         return usuarios;
     }
 
-    public static void updateActividad(String codigoSeguridad) {
-        String sql = "UPDATE usuarios SET ultima_actividad = ?, estado = ? WHERE codigo_seguridad = ?";
+    public static void actualizarEstadoYActividad(String codigo, Usuario.EstadoUsuario estado, LocalDate ultimaActividad) {
+        String sql = """
+            UPDATE usuarios
+            SET estado = ?, ultima_actividad = ?
+            WHERE codigo_seguridad = ?;
+                """;
         try (Connection c = Database.conectar();
              PreparedStatement ps = c.prepareStatement(sql)) {
 
-            ps.setObject(1, LocalDate.now());
-            ps.setString(2, Usuario.EstadoUsuario.ACTIVO.toString());
-            ps.setString(3, codigoSeguridad);
+            ps.setString(1, estado.name());
+            ps.setObject(2, ultimaActividad);
+            ps.setString(3, codigo);
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException("Error al actualizar actividad: " + e.getMessage());
-        }
-    }
-
-    public static void updateEstado(String codigoSeguridad, Usuario.EstadoUsuario estado) {
-        String sql = "UPDATE usuarios SET estado = ? WHERE codigo_seguridad = ?";
-        try (Connection c = Database.conectar();
-             PreparedStatement ps = c.prepareStatement(sql)) {
-
-            ps.setString(1, estado.toString());
-            ps.setString(2, codigoSeguridad);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Error al actualizar estado: " + e.getMessage());
+            throw new RuntimeException("Error al actualizar estado y actividad del usuario: " + e.getMessage());
         }
     }
 }
