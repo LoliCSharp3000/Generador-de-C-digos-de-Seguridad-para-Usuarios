@@ -23,19 +23,19 @@ public class Main {
                             if (!lista.containsKey(usuario.getCodigoSeguridad())) {
                                 lista.put(usuario.getCodigoSeguridad(), usuario);
                                 UsuarioDAO.insertar(usuario);
-                                System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad() + " Total usuarios: " + Usuario.getTotalUsuarios());
+                                System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad());
                             }else{
                                 System.out.println("Ese usuario ya existe");
                             }
                             break;
                         case 2:
+                            lista = UsuarioDAO.cargarTodos();
                             if(lista.isEmpty()){
                                 System.out.println("No hay usuarios creados aún");
                             } else {
                                 for (Usuario u : lista.values()) {
                                     System.out.println(u.toString());
                                 }
-                                System.out.println("Total usuarios: " + Usuario.getTotalUsuarios());
                             }
                             break;
                         case 3:
@@ -56,8 +56,10 @@ public class Main {
                         case 5:
                             System.out.println("Verificando inactividad...");
                             for (Usuario u : lista.values()) {
-                                u.marcarInactivoSiNecesario();
-                                UsuarioDAO.updateEstado(u.getCodigoSeguridad(), u.getEstadoUsuario());
+                                if (u.esInactivo()) {
+                                    u.marcarInactivoSiNecesario();
+                                    UsuarioDAO.updateEstado(u.getCodigoSeguridad(), u.getEstadoUsuario());
+                                }
                             }
                             System.out.println("Verificación completada. Usuarios inactivos marcados.");
                             break;

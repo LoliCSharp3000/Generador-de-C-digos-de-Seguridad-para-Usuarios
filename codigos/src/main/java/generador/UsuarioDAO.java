@@ -27,10 +27,11 @@ public class UsuarioDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error al insertar usuario: " + e.getMessage());
         }
+
     }
 
     public static Map<String, Usuario> cargarTodos() {
-        String sql = "SELECT * FROM usuarios WHERE estado IN ('ACTIVO','INACTIVO','BLOQUEADO')";
+        String sql = "SELECT * FROM usuarios;";
         Map<String, Usuario> usuarios = new HashMap<>();
         try (Connection c = Database.conectar();
              PreparedStatement ps = c.prepareStatement(sql);
@@ -50,7 +51,6 @@ public class UsuarioDAO {
         } catch (SQLException e) {
             throw new RuntimeException("Error al cargar usuarios: " + e.getMessage());
         }
-        Usuario.setTotalUsuarios(usuarios.size());
         return usuarios;
     }
 
