@@ -35,6 +35,14 @@ public class Usuario {
     private static final int max_dias_inactivo = 30;
     private static final int max_dias_bloqueado = 60;
 
+    private static <T extends Enum<T>> T parseEnum(Class<T> enumClass, String value, T defaultValue) {
+        try {
+            return Enum.valueOf(enumClass, value.trim().toUpperCase());
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
     public Usuario(String nombre, int opc){
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("Debes poner el nombre correctamente");
@@ -70,8 +78,8 @@ public class Usuario {
     }
 
     public static Usuario fromDB(String nombre, String tipoStr, String estadoStr, String codigoSeguridad, LocalDate fechaCreacion, LocalDate ultimaActividad) {
-        TipoDeUsuario tipo = TipoDeUsuario.valueOf(tipoStr.trim().toUpperCase()); ;
-        EstadoUsuario estado = EstadoUsuario.valueOf(estadoStr.trim().toUpperCase());
+        TipoDeUsuario tipo = parseEnum(TipoDeUsuario.class, tipoStr, TipoDeUsuario.NORMAL);
+        EstadoUsuario estado = parseEnum(EstadoUsuario.class, estadoStr, EstadoUsuario.ACTIVO);
         return new Usuario(
             nombre,
             tipo, 
@@ -161,6 +169,8 @@ public class Usuario {
     }
 
     public void actualizarEstadoPorInactividad() {
+        if (estadoUsuario == EstadoUsuario.BLOQUEADO) return;
+
         long diasInactivo = ChronoUnit.DAYS.between(ultimaActividad, LocalDate.now());
         if (diasInactivo > max_dias_bloqueado) {
             estadoUsuario = EstadoUsuario.BLOQUEADO;
