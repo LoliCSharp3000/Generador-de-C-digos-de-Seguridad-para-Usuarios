@@ -180,4 +180,15 @@ public class Usuario {
             estadoUsuario = EstadoUsuario.ACTIVO;
         }
     }
+
+    public void desbloquearPorAdmin(TipoDeUsuario solicitante) {
+        if (solicitante != TipoDeUsuario.ADMIN) {
+            throw new IllegalArgumentException("Solo un usuario ADMIN puede desbloquear usuarios.");
+        }
+        if (estadoUsuario != EstadoUsuario.BLOQUEADO) {
+            throw new IllegalStateException("El usuario no está bloqueado.");
+        }
+        this.estadoUsuario = EstadoUsuario.ACTIVO;
+        this.ultimaActividad = LocalDate.now();
+    }
 }

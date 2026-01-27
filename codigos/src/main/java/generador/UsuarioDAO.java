@@ -71,4 +71,21 @@ public class UsuarioDAO {
             throw new RuntimeException("Error al actualizar estado y actividad del usuario: " + e.getMessage());
         }
     }
+
+    public static void desbloquearUsuario(String codigo){
+        String sql = """
+            UPDATE usuarios
+            SET estado = 'ACTIVO', ultima_actividad = ?
+            WHERE codigo_seguridad = ?;
+                """;
+        try (Connection c = Database.conectar();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setObject(1, LocalDate.now());
+            ps.setString(2, codigo);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Error al desbloquear el usuario: " + e.getMessage());
+        }
+    }
 }

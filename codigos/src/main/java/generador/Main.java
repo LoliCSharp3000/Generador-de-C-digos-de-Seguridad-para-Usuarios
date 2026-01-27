@@ -10,7 +10,15 @@ public class Main {
         try(Scanner sc = new Scanner(System.in)){
             while (fun) {
                 try {
-                    System.out.println("Seleccione acción: 1. Crear usuario  2. Ver usuarios  3. Salir    4.Encontrar usuario por código de seguridad  5. Verificar inactividad");
+                    System.out.println("""
+                        Seleccione acción: 
+                        1. Crear usuario  
+                        2. Ver usuarios  
+                        3. Salir    
+                        4.Encontrar usuario por código de seguridad  
+                        5. Verificar inactividad
+                        6. Desbloquear usuario (admin)
+                        """);
                     String input = sc.nextLine();
                     int opc = Integer.parseInt(input);
                     switch (opc) {
@@ -63,6 +71,26 @@ public class Main {
                                 }
                             }
                             System.out.println("Verificación completada. Usuarios inactivos marcados.");
+                            break;
+                        case 6:
+                            System.out.println("Ingrese el código de seguridad del usuario a desbloquear:");
+                            String codigoDesbloqueo = sc.nextLine().trim();
+                            Usuario usuarioABloquear = lista.get(codigoDesbloqueo);
+                            if (usuarioABloquear == null) {
+                                System.out.println("No se encontró ningún usuario con ese código de seguridad.");
+                                break;
+                            } 
+
+                            System.out.println("Confirme el tipo del solicitante (debe ser ADMIN): NORMAL:1   PREMIUM:2   ADMIN:3");
+                            int tipoSolicitante = Integer.parseInt(sc.nextLine().trim());
+                            Usuario.TipoDeUsuario solicitante = Usuario.TipoDeUsuario.values()[tipoSolicitante - 1];
+                            try {
+                                usuarioABloquear.desbloquearPorAdmin(solicitante);
+                                UsuarioDAO.desbloquearUsuario(codigoDesbloqueo);
+                                System.out.println("Usuario desbloqueado exitosamente.");
+                            } catch (Exception e) {
+                                System.out.println("Error al desbloquear usuario: " + e.getMessage());
+                            }
                             break;
                         default:
                             System.out.println("Porfavor pon el numero correcto");
