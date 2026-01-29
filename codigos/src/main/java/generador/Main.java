@@ -56,6 +56,7 @@ public class Main {
                             if (encontrado != null) {
                                 encontrado.actualizarActividad();
                                 UsuarioDAO.actualizarEstadoYActividad(encontrado.getCodigoSeguridad(), encontrado.getEstadoUsuario(), encontrado.getUltimaActividad());
+                                AuditoriaDAO.registrar(encontrado.getCodigoSeguridad(), "Usuario actualizo su actividad");
                                 System.out.println("Usuario encontrado: " + encontrado.toString());
                             } else {
                                 System.out.println("No se encontró ningún usuario con ese código de seguridad.");
@@ -68,6 +69,9 @@ public class Main {
                                 u.actualizarEstadoPorInactividad();
                                 if (estadoAnterior != u.getEstadoUsuario()) {
                                     UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), u.getEstadoUsuario(), u.getUltimaActividad());
+                                }
+                                if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
+                                    AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario bloqueado por inactividad");
                                 }
                             }
                             System.out.println("Verificación completada. Usuarios inactivos marcados.");
@@ -87,6 +91,7 @@ public class Main {
                             try {
                                 usuarioABloquear.desbloquearPorAdmin(solicitante);
                                 UsuarioDAO.desbloquearUsuario(codigoDesbloqueo);
+                                AuditoriaDAO.registrar(usuarioABloquear.getCodigoSeguridad(), "Usuario desbloqueado por administrador");
                                 System.out.println("Usuario desbloqueado exitosamente.");
                             } catch (Exception e) {
                                 System.out.println("Error al desbloquear usuario: " + e.getMessage());
