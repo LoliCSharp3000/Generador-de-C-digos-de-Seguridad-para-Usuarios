@@ -3,6 +3,7 @@ package generador;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class Usuario {
     private final String nombre;
@@ -34,6 +35,7 @@ public class Usuario {
     private static final int min_nombre = 3;
     private static final int max_dias_inactivo = 30;
     private static final int max_dias_bloqueado = 60;
+    private String passwordHash;
 
     private static <T extends Enum<T>> T parseEnum(Class<T> enumClass, String value, T defaultValue) {
         try {
@@ -43,7 +45,7 @@ public class Usuario {
         }
     }
 
-    public Usuario(String nombre, int opc){
+    public Usuario(String nombre, int opc, String password) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("Debes poner el nombre correctamente");
         }
@@ -66,27 +68,40 @@ public class Usuario {
         this.codigoSeguridad = generarCodigoSeguro(tipoDeUsuario.longitudDeCodigo);
         this.fechaDeCreacion = LocalDate.now();
         this.ultimaActividad = LocalDate.now();
+        if (password.length() < 7) {
+            throw new IllegalArgumentException("La contraseña debe tener al menos 7 caracteres");   
+        }
+        this.passwordHash = hashPassword(password);
     }
 
-    private Usuario(String nombre, TipoDeUsuario tipo, EstadoUsuario estado, String codigo, LocalDate fechaCreacion, LocalDate ultimaActividad) {
+    private Usuario(String nombre, TipoDeUsuario tipo, EstadoUsuario estado, String codigo, LocalDate fechaCreacion, LocalDate ultimaActividad, String passwordHash) {
         this.nombre = nombre;
         this.tipoDeUsuario = tipo;
         this.estadoUsuario = estado;
         this.codigoSeguridad = codigo;
         this.fechaDeCreacion = fechaCreacion;
         this.ultimaActividad = ultimaActividad;
+        this.passwordHash = passwordHash;
     }
 
-    public static Usuario fromDB(String nombre, String tipoStr, String estadoStr, String codigoSeguridad, LocalDate fechaCreacion, LocalDate ultimaActividad) {
-        TipoDeUsuario tipo = parseEnum(TipoDeUsuario.class, tipoStr, TipoDeUsuario.NORMAL);
-        EstadoUsuario estado = parseEnum(EstadoUsuario.class, estadoStr, EstadoUsuario.ACTIVO);
-        return new Usuario(
-            nombre,
-            tipo, 
+    public static Usuario fromDB(
+        String nombre, 
+        String tipoStr, 
+        String estadoStr, 
+        String codigoSeguridad, 
+        LocalDate fechaCreacion, 
+        LocalDate ultimaActividad, 
+        String passwordHash) {
+            TipoDeUsuario tipo = parseEnum(TipoDeUsuario.class, tipoStr, TipoDeUsuario.NORMAL);
+            EstadoUsuario estado = parseEnum(EstadoUsuario.class, estadoStr, EstadoUsuario.ACTIVO);
+            return new Usuario(
+                nombre,
+                tipo,
             estado, 
             codigoSeguridad, 
             fechaCreacion != null ? fechaCreacion : LocalDate.now(), 
-            ultimaActividad != null ? ultimaActividad : LocalDate.now()
+            ultimaActividad != null ? ultimaActividad : LocalDate.now(),
+            passwordHash
         );
     }
     public LocalDate getFechaDeCreacion() {
@@ -190,5 +205,17 @@ public class Usuario {
         }
         this.estadoUsuario = EstadoUsuario.ACTIVO;
         this.ultimaActividad = LocalDate.now();
+    }
+
+    private String hashPassword(String password) {
+        return BCrypt.hashpw(password, BCrypt.gensalt(12));
+    }
+
+    public boolean verificarPassword(String password) {
+        return BCrypt.checkpw(password, this.passwordHash);
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
     }
 }

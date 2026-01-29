@@ -13,7 +13,8 @@ create table usuarios (
     tipo enum('NORMAL','PREMIUM','ADMIN') not null,
     estado enum('ACTIVO','INACTIVO','BLOQUEADO') not null,
     fecha_creacion date not null,
-    ultima_actividad date not null
+    ultima_actividad date not null,
+    password_hash VARCHAR(60) NOT NULL
 );
 
 drop table if exists auditoria;

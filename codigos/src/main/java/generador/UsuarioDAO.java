@@ -11,8 +11,8 @@ import java.util.Map;
 public class UsuarioDAO {
     public static void insertar(Usuario u){
         String sql = """
-            INSERT INTO usuarios (codigo_seguridad, nombre_usuario, tipo, estado, fecha_creacion, ultima_actividad)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO usuarios (codigo_seguridad, nombre_usuario, tipo, estado, fecha_creacion, ultima_actividad, password_hash)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
         try(Connection c = Database.conectar();
             PreparedStatement ps = c.prepareStatement(sql)){ 
@@ -23,6 +23,7 @@ public class UsuarioDAO {
             ps.setString(4, u.getEstadoUsuario().toString());
             ps.setObject(5, u.getFechaDeCreacion());
             ps.setObject(6, u.getUltimaActividad());
+            ps.setString(7, u.getPasswordHash());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error al insertar usuario: " + e.getMessage());
@@ -30,7 +31,7 @@ public class UsuarioDAO {
 
     }
 
-    public static Map<String, Usuario> cargarTodos() {
+    public static Map<String, Usuario> cargarTodos() { 
         String sql = "SELECT * FROM usuarios;";
         Map<String, Usuario> usuarios = new HashMap<>();
         try (Connection c = Database.conectar();
@@ -38,13 +39,15 @@ public class UsuarioDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
+                String passwordHash = rs.getString("password_hash");
                 Usuario u = Usuario.fromDB(
                     rs.getString("nombre_usuario"),
                     rs.getString("tipo"),
                     rs.getString("estado"),
                     rs.getString("codigo_seguridad"),
                     rs.getObject("fecha_creacion", LocalDate.class),
-                    rs.getObject("ultima_actividad", LocalDate.class)
+                    rs.getObject("ultima_actividad", LocalDate.class),
+                    passwordHash
                 );
                 usuarios.put(u.getCodigoSeguridad(), u);
             }
