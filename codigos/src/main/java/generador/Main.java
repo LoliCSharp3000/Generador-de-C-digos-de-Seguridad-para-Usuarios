@@ -1,5 +1,6 @@
 package generador;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.Consumer;
@@ -27,6 +28,7 @@ public class Main { // EIV9DASMIZKL
                         4. Encontrar usuario por código de seguridad  
                         5. Verificar inactividad
                         6. Desbloquear usuario (admin)
+                        7. mostrar usuarios por ultima actividad
                         """);
                     String input = sc.nextLine();
                     int opc = Integer.parseInt(input);
@@ -126,6 +128,12 @@ public class Main { // EIV9DASMIZKL
                             } catch (Exception e) {
                                 System.out.println("Error al desbloquear usuario: " + e.getMessage());
                             }
+                            break;
+                        case 7:
+                            System.out.println("Mostrando usuarios por última actividad...");
+                            lista.values().stream()
+                                .sorted(Comparator.comparing(Usuario::getUltimaActividad).reversed())
+                                .forEach(System.out::println);
                             break;
                         default:
                             System.out.println("Porfavor pon el numero correcto");
