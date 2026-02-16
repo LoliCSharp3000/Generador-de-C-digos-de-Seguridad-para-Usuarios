@@ -2,6 +2,15 @@ package generador;
 
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+/**
+ * experimento de java doc
+ * @author Loli
+ * @version 1.0
+ * @since 2026-01-29
+ */
 
 public class Main { // EIV9DASMIZKL
     public static void main(String[] args) {
@@ -15,7 +24,7 @@ public class Main { // EIV9DASMIZKL
                         1. Crear usuario  
                         2. Ver usuarios  
                         3. Salir    
-                        4.Encontrar usuario por código de seguridad  
+                        4. Encontrar usuario por código de seguridad  
                         5. Verificar inactividad
                         6. Desbloquear usuario (admin)
                         """);
@@ -24,7 +33,7 @@ public class Main { // EIV9DASMIZKL
                     switch (opc) {
                         case 1:
                             try {
-                                System.out.println("Dime un que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
+                                System.out.println("Dime que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
                                 String inp = sc.nextLine();
                                 int opci = Integer.parseInt(inp);
                                 System.out.println("Ingrese su nombre");
@@ -54,9 +63,7 @@ public class Main { // EIV9DASMIZKL
                             if(lista.isEmpty()){
                                 System.out.println("No hay usuarios creados aún");
                             } else {
-                                for (Usuario u : lista.values()) {
-                                    System.out.println(u.toString());
-                                }
+                                lista.values().forEach(System.out::println);
                             }
                             break;
                         case 3:
@@ -82,17 +89,17 @@ public class Main { // EIV9DASMIZKL
                             break;
                         case 5:
                             System.out.println("Verificando inactividad...");
-                            for (Usuario u : lista.values()) {
+                            Consumer<Usuario> verificarUsuario = u ->{
                                 Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
                                 u.actualizarEstadoPorInactividad();
                                 if (estadoAnterior != u.getEstadoUsuario()) {
                                     UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), u.getEstadoUsuario(), u.getUltimaActividad());
+                                    if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
+                                        AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario bloqueado por inactividad");
+                                    }
                                 }
-                                if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
-                                    AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario bloqueado por inactividad");
-                                }
-                            }
-                            System.out.println("Verificación completada. Usuarios inactivos marcados.");
+                            };
+                            lista.values().forEach(verificarUsuario);
                             break;
                         case 6:
                             Usuario usua = login(lista, sc);
@@ -146,7 +153,8 @@ public class Main { // EIV9DASMIZKL
         }
         System.out.println("Ingrese la contraseña:");
         String password = sc.nextLine();
-        if (!u.verificarPassword(password)) {
+        Predicate<String> verificarPassword = pass -> u.verificarPassword(pass);
+        if (!verificarPassword.test(password)) {
             System.out.println("Contraseña incorrecta.");
             return null;
         }
