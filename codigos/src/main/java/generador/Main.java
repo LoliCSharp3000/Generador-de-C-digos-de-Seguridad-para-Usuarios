@@ -33,112 +33,13 @@ public class Main { // EIV9DASMIZKL
                     String input = sc.nextLine();
                     int opc = Integer.parseInt(input);
                     switch (opc) {
-                        case 1:
-                            try {
-                                System.out.println("Dime que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
-                                String inp = sc.nextLine();
-                                int opci = Integer.parseInt(inp);
-                                System.out.println("Ingrese su nombre");
-                                String nombre = sc.nextLine();
-                                System.out.println("Ingrese su contraseña");
-                                String password = sc.nextLine();
-                                Usuario usuario = new Usuario(nombre, opci, password);
-                                if (!lista.containsKey(usuario.getCodigoSeguridad())) {
-                                    lista.put(usuario.getCodigoSeguridad(), usuario);
-                                    UsuarioDAO.insertar(usuario);
-                                    System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad());
-                                }else{
-                                    System.out.println("Ese usuario ya existe");
-                                }
-                            } catch (IllegalArgumentException e) {
-                                System.out.println("Error al crear usuario: " + e.getMessage());
-                                break;
-                            }
-                            
-                            break;
-                        case 2:
-                            Usuario us = login(lista, sc);
-                            if (us == null) {
-                                System.out.println("No se pudo iniciar sesión.");
-                            }
-                            lista = UsuarioDAO.cargarTodos();
-                            if(lista.isEmpty()){
-                                System.out.println("No hay usuarios creados aún");
-                            } else {
-                                lista.values().forEach(System.out::println);
-                            }
-                            break;
-                        case 3:
-                            fun = false;
-                            break;
-                        case 4:
-                            Usuario usu = login(lista, sc);
-                            if (usu == null) {
-                                System.out.println("No se pudo iniciar sesión.");
-                                break;
-                            }
-                            System.out.println("Ingrese el código de seguridad del usuario:");
-                            String codigo = sc.nextLine().trim();
-                            Usuario encontrado = lista.get(codigo);
-                            if (encontrado != null) {
-                                encontrado.actualizarActividad();
-                                UsuarioDAO.actualizarEstadoYActividad(encontrado.getCodigoSeguridad(), encontrado.getEstadoUsuario(), encontrado.getUltimaActividad());
-                                AuditoriaDAO.registrar(encontrado.getCodigoSeguridad(), "Usuario actualizo su actividad");
-                                System.out.println("Usuario encontrado: " + encontrado.toString());
-                            } else {
-                                System.out.println("No se encontró ningún usuario con ese código de seguridad.");
-                            }        
-                            break;
-                        case 5:
-                            System.out.println("Verificando inactividad...");
-                            Consumer<Usuario> verificarUsuario = u ->{
-                                Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
-                                u.actualizarEstadoPorInactividad();
-                                if (estadoAnterior != u.getEstadoUsuario()) {
-                                    UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), u.getEstadoUsuario(), u.getUltimaActividad());
-                                    if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
-                                        AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario bloqueado por inactividad");
-                                    }
-                                }
-                            };
-                            lista.values().forEach(verificarUsuario);
-                            break;
-                        case 6:
-                            Usuario usua = login(lista, sc);
-                            if (usua == null) {
-                                System.out.println("No se pudo iniciar sesión.");
-                                break;
-                            }
-                            if(usua.getTipoDeUsuario() != Usuario.TipoDeUsuario.ADMIN){
-                                System.out.println("Solo un usuario ADMIN puede desbloquear usuarios.");
-                                break;
-                            }
-                            System.out.println("Ingrese el código de seguridad del usuario a desbloquear:");
-                            String codigoDesbloqueo = sc.nextLine().trim();
-                            Usuario usuarioABloquear = lista.get(codigoDesbloqueo);
-                            if (usuarioABloquear == null) {
-                                System.out.println("No se encontró ningún usuario con ese código de seguridad.");
-                                break;
-                            } 
-                            try {
-                                usuarioABloquear.desbloquearPorAdmin(usua.getTipoDeUsuario());
-                                UsuarioDAO.desbloquearUsuario(codigoDesbloqueo);
-                                AuditoriaDAO.registrar(usuarioABloquear.getCodigoSeguridad(), "Usuario desbloqueado por administrador");
-                                System.out.println("Usuario desbloqueado exitosamente.");
-                            } catch (Exception e) {
-                                System.out.println("Error al desbloquear usuario: " + e.getMessage());
-                            }
-                            break;
-                        case 7:
-                            lista = UsuarioDAO.cargarTodos();
-                            System.out.println("Mostrando usuarios por última actividad...");
-                            lista.values().stream()
-                                .sorted(Comparator.comparing(Usuario::getUltimaActividad, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-                                .forEach(System.out::println);
-                            break;
-                        default:
-                            System.out.println("Porfavor pon el numero correcto");
-                            break;
+                        case 1 -> crearUsuario(lista, sc);
+                        case 2 -> mostrarUsuarios(lista);
+                        case 3 -> fun = false;
+                        case 4 -> buscarUsuarioPorCodigo(lista, sc);
+                        case 5 -> verificarInactividad(lista);
+                        case 6 -> desbloquearUsuario(lista, sc);
+                        case 7 -> mostrarUsuariosPorUltimaActividad(lista);
                     }
                 } catch(NumberFormatException e){
                     System.out.println("Error: " + e.getMessage());
@@ -175,5 +76,99 @@ public class Main { // EIV9DASMIZKL
         UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), u.getEstadoUsuario(), u.getUltimaActividad());
         AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario inició sesión");
         return u;
+    }
+
+    private static void crearUsuario(Map<String, Usuario> lista, Scanner sc) {
+        try {
+            System.out.println("Dime que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
+            String inp = sc.nextLine();
+            int opci = Integer.parseInt(inp);
+            System.out.println("Ingrese su nombre");
+            String nombre = sc.nextLine();
+            System.out.println("Ingrese su contraseña");
+            String password = sc.nextLine();
+            Usuario usuario = new Usuario(nombre, opci, password);
+            if (!lista.containsKey(usuario.getCodigoSeguridad())) {
+                lista.put(usuario.getCodigoSeguridad(), usuario);
+                UsuarioDAO.insertar(usuario);
+                System.out.println("Clave de Seguridad del usuario: " + usuario.getCodigoSeguridad());
+            } else {
+                System.out.println("Ese usuario ya existe");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Error al crear usuario: " + e.getMessage());
+        }
+    }
+
+    private static void mostrarUsuarios(Map<String, Usuario> lista) {
+        lista = UsuarioDAO.cargarTodos();
+        if (lista.isEmpty()) {
+            System.out.println("No hay usuarios creados aún");
+        } else {
+            lista.values().forEach(System.out::println);
+        }
+    }
+
+    private static void buscarUsuarioPorCodigo(Map<String, Usuario> lista, Scanner sc) {
+        System.out.println("Ingrese el código de seguridad del usuario:");
+        String codigo = sc.nextLine().trim();
+        Usuario encontrado = lista.get(codigo);
+        if (encontrado != null) {
+            encontrado.actualizarActividad();
+            UsuarioDAO.actualizarEstadoYActividad(encontrado.getCodigoSeguridad(), encontrado.getEstadoUsuario(), encontrado.getUltimaActividad());
+            AuditoriaDAO.registrar(encontrado.getCodigoSeguridad(), "Usuario actualizo su actividad");
+            System.out.println("Usuario encontrado: " + encontrado.toString());
+        } else {
+            System.out.println("No se encontró ningún usuario con ese código de seguridad.");
+        }
+    }
+
+    private static void verificarInactividad(Map<String, Usuario> lista) {
+        Consumer<Usuario> verificarUsuario = u ->{
+            Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
+            u.actualizarEstadoPorInactividad();
+            if (estadoAnterior != u.getEstadoUsuario()) {
+                UsuarioDAO.actualizarEstadoYActividad(u.getCodigoSeguridad(), u.getEstadoUsuario(), u.getUltimaActividad());
+                if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
+                    AuditoriaDAO.registrar(u.getCodigoSeguridad(), "Usuario bloqueado por inactividad");
+                }
+            }
+        };
+        lista.values().forEach(verificarUsuario);
+    }
+
+    private static void desbloquearUsuario(Map<String, Usuario> lista, Scanner sc) {
+
+        Usuario admin = login(lista, sc);
+        if (admin == null) return;
+
+        if (admin.getTipoDeUsuario() != Usuario.TipoDeUsuario.ADMIN) {
+            System.out.println("Solo un ADMIN puede desbloquear usuarios.");
+            return;
+        }
+
+        System.out.println("Ingrese el código de seguridad del usuario a desbloquear:");
+        String codigo = sc.nextLine().trim();
+
+        Usuario usuario = lista.get(codigo);
+        if (usuario == null) {
+            System.out.println("Usuario no encontrado.");
+            return;
+        }
+
+        usuario.desbloquearPorAdmin(admin.getTipoDeUsuario());
+        UsuarioDAO.desbloquearUsuario(codigo);
+        AuditoriaDAO.registrar(usuario.getCodigoSeguridad(),
+            "Usuario desbloqueado por administrador");
+
+        System.out.println("Usuario desbloqueado exitosamente.");
+    }
+
+
+    private static void mostrarUsuariosPorUltimaActividad(Map<String, Usuario> lista) {
+        System.out.println("Mostrando usuarios por última actividad...");
+        lista.values().stream()
+            .sorted(Comparator.comparing(Usuario::getUltimaActividad, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+            .forEach(System.out::println);
     }
 }
