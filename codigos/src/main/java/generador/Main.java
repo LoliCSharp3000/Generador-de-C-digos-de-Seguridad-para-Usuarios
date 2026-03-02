@@ -130,9 +130,10 @@ public class Main { // EIV9DASMIZKL
                             }
                             break;
                         case 7:
+                            lista = UsuarioDAO.cargarTodos();
                             System.out.println("Mostrando usuarios por última actividad...");
                             lista.values().stream()
-                                .sorted(Comparator.comparing(Usuario::getUltimaActividad).reversed())
+                                .sorted(Comparator.comparing(Usuario::getUltimaActividad, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
                                 .forEach(System.out::println);
                             break;
                         default:
