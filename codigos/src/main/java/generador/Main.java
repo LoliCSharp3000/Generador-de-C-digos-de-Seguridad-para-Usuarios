@@ -18,6 +18,15 @@ public class Main { // EIV9DASMIZKL
         Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         boolean fun = true;
         try(Scanner sc = new Scanner(System.in)){
+            Map<Integer, Runnable> acciones = Map.of(
+                1, () -> crearUsuario(lista, sc),
+                2, () -> mostrarUsuarios(lista),
+                3, () -> System.exit(0),
+                4, () -> buscarUsuarioPorCodigo(lista, sc),
+                5, () -> verificarInactividad(lista),
+                6, () -> desbloquearUsuario(lista, sc),
+                7, () -> mostrarUsuariosPorUltimaActividad(lista)
+            );
             while (fun) {
                 try {
                     System.out.println("""
@@ -30,16 +39,15 @@ public class Main { // EIV9DASMIZKL
                         6. Desbloquear usuario (admin)
                         7. mostrar usuarios por ultima actividad
                         """);
-                    String input = sc.nextLine();
-                    int opc = Integer.parseInt(input);
-                    switch (opc) {
-                        case 1 -> crearUsuario(lista, sc);
-                        case 2 -> mostrarUsuarios(lista);
-                        case 3 -> fun = false;
-                        case 4 -> buscarUsuarioPorCodigo(lista, sc);
-                        case 5 -> verificarInactividad(lista);
-                        case 6 -> desbloquearUsuario(lista, sc);
-                        case 7 -> mostrarUsuariosPorUltimaActividad(lista);
+                    int input = Integer.parseInt(sc.nextLine());
+                    Runnable accion = acciones.get(input);
+                    if (accion != null) {
+                        lista.clear();
+                        lista.putAll(UsuarioDAO.cargarTodos());
+                        accion.run();
+                    } else {
+                        System.out.println("Opción no válida. Intente nuevamente.");
+                        
                     }
                 } catch(NumberFormatException e){
                     System.out.println("Error: " + e.getMessage());
@@ -101,7 +109,6 @@ public class Main { // EIV9DASMIZKL
     }
 
     private static void mostrarUsuarios(Map<String, Usuario> lista) {
-        lista = UsuarioDAO.cargarTodos();
         if (lista.isEmpty()) {
             System.out.println("No hay usuarios creados aún");
         } else {
