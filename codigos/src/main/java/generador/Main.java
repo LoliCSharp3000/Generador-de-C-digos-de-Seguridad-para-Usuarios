@@ -21,7 +21,6 @@ public class Main { // EIV9DASMIZKL
             Map<Integer, Runnable> acciones = Map.of(
                 1, () -> crearUsuario(lista, sc),
                 2, () -> mostrarUsuarios(lista),
-                3, () -> System.exit(0),
                 4, () -> buscarUsuarioPorCodigo(lista, sc),
                 5, () -> verificarInactividad(lista),
                 6, () -> desbloquearUsuario(lista, sc),
@@ -40,6 +39,11 @@ public class Main { // EIV9DASMIZKL
                         7. mostrar usuarios por ultima actividad
                         """);
                     int input = Integer.parseInt(sc.nextLine());
+                    if (input == 3) {
+                        fun = false;
+                        System.out.println("Saliendo del programa...");
+                        continue;
+                    }
                     Runnable accion = acciones.get(input);
                     if (accion != null) {
                         lista.clear();
