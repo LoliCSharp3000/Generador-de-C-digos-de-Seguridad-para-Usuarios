@@ -13,48 +13,26 @@ import java.util.function.Predicate;
  * @since 2026-01-29
  */
 
-public class Main { // EIV9DASMIZKL
+public class Main {
     public static void main(String[] args) {
         Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
-        boolean fun = true;
         try(Scanner sc = new Scanner(System.in)){
-            Map<Integer, Runnable> acciones = Map.of(
-                1, () -> crearUsuario(lista, sc),
-                2, () -> mostrarUsuarios(lista),
-                4, () -> buscarUsuarioPorCodigo(lista, sc),
-                5, () -> verificarInactividad(lista),
-                6, () -> desbloquearUsuario(lista, sc),
-                7, () -> mostrarUsuariosPorUltimaActividad(lista)
-            );
-            while (fun) {
+            Contexto ctx = new Contexto(lista, sc);
+            while (!ctx.debeSalir()) {
+                mostrarMenu(ctx);
                 try {
-                    System.out.println("""
-                        Seleccione acción: 
-                        1. Crear usuario  
-                        2. Ver usuarios  
-                        3. Salir    
-                        4. Encontrar usuario por código de seguridad  
-                        5. Verificar inactividad
-                        6. Desbloquear usuario (admin)
-                        7. mostrar usuarios por ultima actividad
-                        """);
                     int input = Integer.parseInt(sc.nextLine());
-                    if (input == 3) {
-                        fun = false;
-                        System.out.println("Saliendo del programa...");
-                        continue;
-                    }
-                    Runnable accion = acciones.get(input);
-                    if (accion != null) {
+                    OpcionMenu opcion = OpcionMenu.fromCodigo(input);
+                    if (opcion != null) {
                         lista.clear();
                         lista.putAll(UsuarioDAO.cargarTodos());
-                        accion.run();
+                        opcion.ejecutar(ctx);
                     } else {
                         System.out.println("Opción no válida. Intente nuevamente.");
                         
                     }
                 } catch(NumberFormatException e){
-                    System.out.println("Error: " + e.getMessage());
+                    System.out.println("Error: entrada no válida. Por favor ingrese un número.");
                 } catch(IllegalArgumentException e){
                     System.out.println("Error: " + e.getMessage());
                 } catch(Exception e){
@@ -90,7 +68,7 @@ public class Main { // EIV9DASMIZKL
         return u;
     }
 
-    private static void crearUsuario(Map<String, Usuario> lista, Scanner sc) {
+    public static void crearUsuario(Map<String, Usuario> lista, Scanner sc) {
         try {
             System.out.println("Dime que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
             String inp = sc.nextLine();
@@ -112,7 +90,7 @@ public class Main { // EIV9DASMIZKL
         }
     }
 
-    private static void mostrarUsuarios(Map<String, Usuario> lista) {
+    public static void mostrarUsuarios(Map<String, Usuario> lista) {
         if (lista.isEmpty()) {
             System.out.println("No hay usuarios creados aún");
         } else {
@@ -120,7 +98,7 @@ public class Main { // EIV9DASMIZKL
         }
     }
 
-    private static void buscarUsuarioPorCodigo(Map<String, Usuario> lista, Scanner sc) {
+    public static void buscarUsuarioPorCodigo(Map<String, Usuario> lista, Scanner sc) {
         System.out.println("Ingrese el código de seguridad del usuario:");
         String codigo = sc.nextLine().trim();
         Usuario encontrado = lista.get(codigo);
@@ -134,7 +112,7 @@ public class Main { // EIV9DASMIZKL
         }
     }
 
-    private static void verificarInactividad(Map<String, Usuario> lista) {
+    public static void verificarInactividad(Map<String, Usuario> lista) {
         Consumer<Usuario> verificarUsuario = u ->{
             Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
             u.actualizarEstadoPorInactividad();
@@ -148,7 +126,7 @@ public class Main { // EIV9DASMIZKL
         lista.values().forEach(verificarUsuario);
     }
 
-    private static void desbloquearUsuario(Map<String, Usuario> lista, Scanner sc) {
+    public static void desbloquearUsuario(Map<String, Usuario> lista, Scanner sc) {
 
         Usuario admin = login(lista, sc);
         if (admin == null) return;
@@ -176,10 +154,17 @@ public class Main { // EIV9DASMIZKL
     }
 
 
-    private static void mostrarUsuariosPorUltimaActividad(Map<String, Usuario> lista) {
+    public static void mostrarUsuariosPorUltimaActividad(Map<String, Usuario> lista) {
         System.out.println("Mostrando usuarios por última actividad...");
         lista.values().stream()
             .sorted(Comparator.comparing(Usuario::getUltimaActividad, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
             .forEach(System.out::println);
+    }
+
+    private static void mostrarMenu(Contexto ctx) {
+        System.out.println("Seleccione acción:");
+        for (OpcionMenu op : OpcionMenu.values()) {
+            System.out.println(op.getCodigo() + ". " + op.getDescripcion());
+        }
     }
 }
