@@ -47,7 +47,7 @@ public enum OpcionMenu {
     MOSTRAR_POR_ACTIVIDAD(7, "Mostrar usuarios por última actividad") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.mostrarUsuariosPorUltimaActividad(ctx.lista());
+            UsuarioServicio.mostrarOrdenadosPorActividad(ctx.lista());
         }
     };
 
