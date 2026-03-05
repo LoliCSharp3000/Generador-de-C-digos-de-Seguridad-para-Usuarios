@@ -5,14 +5,14 @@ public enum OpcionMenu {
     CREAR_USUARIO(1, "Crear usuario") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.crearUsuario(ctx.lista(), ctx.scanner());
+            Main.crearUsuario(ctx.scanner());
         }
     },
 
     VER_USUARIOS(2, "Ver usuarios") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.mostrarUsuarios(ctx.lista());
+            UsuarioServicio.mostrarUsuarios();
         }
     },
 
@@ -26,28 +26,28 @@ public enum OpcionMenu {
     BUSCAR_USUARIO(4, "Buscar usuario por código") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.buscarUsuarioPorCodigo(ctx.lista(), ctx.scanner());
+            Main.buscarUsuarioPorCodigo(ctx.scanner());
         }
     },
 
     VERIFICAR_INACTIVIDAD(5, "Verificar inactividad") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.verificarInactividad(ctx.lista());
+            UsuarioServicio.verificarInactividadServicio();
         }
     },
 
     DESBLOQUEAR(6, "Desbloquear usuario (admin)") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.desbloquearUsuario(ctx.lista(), ctx.scanner());
+            Main.desbloquearUsuario(ctx.scanner());
         }
     },
 
     MOSTRAR_POR_ACTIVIDAD(7, "Mostrar usuarios por última actividad") {
         @Override
         public void ejecutar(Contexto ctx) {
-            UsuarioServicio.mostrarOrdenadosPorActividad(ctx.lista());
+            UsuarioServicio.mostrarOrdenadosPorActividad();
         }
     };
 

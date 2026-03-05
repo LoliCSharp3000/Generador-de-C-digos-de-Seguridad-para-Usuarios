@@ -5,15 +5,18 @@ import java.util.Map;
 
 public class UsuarioServicio {
 
-    public void crearUsuario(Map<String, Usuario> lista, String nombre, int tipo, String password) {
+    private Map<String, Usuario> cargarUsuarios() {
+        return UsuarioDAO.cargarTodos();
+    }
 
+    public void crearUsuario(String nombre, int tipo, String password) {
+        Map<String, Usuario> lista = cargarUsuarios();
         Usuario usuario = new Usuario(nombre, tipo, password);
 
         if (lista.containsKey(usuario.getCodigoSeguridad())) {
             throw new IllegalArgumentException("Ese usuario ya existe");
         }
 
-        lista.put(usuario.getCodigoSeguridad(), usuario);
         UsuarioDAO.insertar(usuario);
     }
 
@@ -68,8 +71,8 @@ public class UsuarioServicio {
         });
     }
 
-    public void desbloquearUsuario(Map<String, Usuario> lista, String adminCodigo, String adminPass, String codigoUsuario) {
-
+    public void desbloquearUsuario(String adminCodigo, String adminPass, String codigoUsuario) {
+        Map<String, Usuario> lista = cargarUsuarios();
         Usuario admin = login(lista, adminCodigo, adminPass);
 
         if (admin.getTipoDeUsuario() != Usuario.TipoDeUsuario.ADMIN) {
@@ -91,12 +94,58 @@ public class UsuarioServicio {
         );
     }
 
-    public static void mostrarOrdenadosPorActividad(Map<String, Usuario> lista) {
+    public static void mostrarOrdenadosPorActividad() {
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         lista.values().stream()
                 .sorted(Comparator.comparing(
                         Usuario::getUltimaActividad,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ).reversed())
                 .forEach(System.out::println);
+    }
+
+    public static void mostrarUsuarios() {
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+        if (lista.isEmpty()) {
+            System.out.println("No hay usuarios creados aún");
+        } else {
+            lista.values().forEach(System.out::println);
+        }
+    }
+
+    public void buscarUsuarioPorCodigoServicio(String codigo) {
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+        Usuario encontrado = lista.get(codigo);
+        if (encontrado != null) {
+            encontrado.actualizarActividad();
+            UsuarioDAO.actualizarEstadoYActividad(encontrado.getCodigoSeguridad(), encontrado.getEstadoUsuario(), encontrado.getUltimaActividad());
+            AuditoriaDAO.registrar(encontrado.getCodigoSeguridad(), "Usuario actualizo su actividad");
+            System.out.println("Usuario encontrado: " + encontrado.toString());
+        } else {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+    }
+
+    public static void verificarInactividadServicio() {
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+        lista.values().forEach(u -> {
+            Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
+            u.actualizarEstadoPorInactividad();
+
+            if (estadoAnterior != u.getEstadoUsuario()) {
+                UsuarioDAO.actualizarEstadoYActividad(
+                        u.getCodigoSeguridad(),
+                        u.getEstadoUsuario(),
+                        u.getUltimaActividad()
+                );
+
+                if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
+                    AuditoriaDAO.registrar(
+                            u.getCodigoSeguridad(),
+                            "Usuario bloqueado por inactividad"
+                    );
+                }
+            }
+        });
     }
 }
