@@ -5,7 +5,7 @@ public enum OpcionMenu {
     CREAR_USUARIO(1, "Crear usuario") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.crearUsuario(ctx.scanner());
+            Controlador.crearUsuario(ctx.scanner());
         }
     },
 
@@ -26,7 +26,7 @@ public enum OpcionMenu {
     BUSCAR_USUARIO(4, "Buscar usuario por código") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.buscarUsuarioPorCodigo(ctx.scanner());
+            Controlador.buscarUsuarioPorCodigo(ctx.scanner());
         }
     },
 
@@ -40,7 +40,7 @@ public enum OpcionMenu {
     DESBLOQUEAR(6, "Desbloquear usuario (admin)") {
         @Override
         public void ejecutar(Contexto ctx) {
-            Main.desbloquearUsuario(ctx.scanner());
+            Controlador.desbloquearUsuario(ctx.scanner());
         }
     },
 
