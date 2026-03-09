@@ -37,7 +37,7 @@ public class Controlador {
         servicio.desbloquearUsuario(adminCodigo, adminPass, codigoUsuario);
     }
 
-    public static void mostrarMenu(Contexto ctx) {
+    public static void mostrarMenu() {
         System.out.println("Seleccione acción:");
         for (OpcionMenu op : OpcionMenu.values()) {
             System.out.println(op.getCodigo() + ". " + op.getDescripcion());

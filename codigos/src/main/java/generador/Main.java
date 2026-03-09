@@ -15,7 +15,7 @@ public class Main {
         try(Scanner sc = new Scanner(System.in)){
             Contexto ctx = new Contexto(sc);
             while (!ctx.debeSalir()) {
-                Controlador.mostrarMenu(ctx);
+                Controlador.mostrarMenu();
                 try {
                     int input = Integer.parseInt(sc.nextLine());
                     OpcionMenu opcion = OpcionMenu.fromCodigo(input);
