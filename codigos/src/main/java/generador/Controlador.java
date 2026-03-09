@@ -3,9 +3,13 @@ package generador;
 import java.util.Scanner;
 
 public class Controlador {
-    private static UsuarioServicio servicio = new UsuarioServicio();
+    private final UsuarioServicio servicio;
 
-    public static void crearUsuario(Scanner sc) {
+    public Controlador(UsuarioServicio servicio) {
+        this.servicio = servicio;
+    }
+
+    public void crearUsuario(Scanner sc) {
         try {
             System.out.println("Dime que tipo de usuario quieres: NORMAL:1   PREMIUM:2   ADMIN:3");
             String inp = sc.nextLine();
@@ -20,13 +24,17 @@ public class Controlador {
         }
     }
 
-    public static void buscarUsuarioPorCodigo(Scanner sc) {
+    public void mostrarUsuarios() {
+        servicio.mostrarUsuarios();
+    }
+
+    public void buscarUsuarioPorCodigo(Scanner sc) {
         System.out.println("Ingrese el código de seguridad del usuario:");
         String codigo = sc.nextLine().trim();
         servicio.buscarUsuarioPorCodigoServicio(codigo);
     }
 
-    public static void desbloquearUsuario(Scanner sc) {
+    public void desbloquearUsuario(Scanner sc) {
         System.out.println("Para desbloquear un usuario, primero debe iniciar sesión como ADMIN.");
         System.out.println("Ingrese su código de seguridad:");
         String adminCodigo = sc.nextLine().trim();
@@ -37,7 +45,15 @@ public class Controlador {
         servicio.desbloquearUsuario(adminCodigo, adminPass, codigoUsuario);
     }
 
-    public static void mostrarMenu() {
+    public void verificarInactividad() {
+        servicio.verificarInactividad();
+    }
+
+    public void mostrarPorActividad() {
+        servicio.mostrarOrdenadosPorActividad();
+    }
+
+    public void mostrarMenu() {
         System.out.println("Seleccione acción:");
         for (OpcionMenu op : OpcionMenu.values()) {
             System.out.println(op.getCodigo() + ". " + op.getDescripcion());

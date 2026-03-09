@@ -4,9 +4,14 @@ import java.util.Comparator;
 import java.util.Map;
 
 public class UsuarioServicio {
+    private final UsuarioDAO dao;
+
+    public UsuarioServicio() {
+        this.dao = new UsuarioDAO();
+    }
 
     private Map<String, Usuario> cargarUsuarios() {
-        return UsuarioDAO.cargarTodos();
+        return dao.cargarTodos();
     }
 
     public void crearUsuario(String nombre, int tipo, String password) {
@@ -48,29 +53,6 @@ public class UsuarioServicio {
         return u;
     }
 
-    public static void verificarInactividad(Map<String, Usuario> lista) {
-
-        lista.values().forEach(u -> {
-            Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
-            u.actualizarEstadoPorInactividad();
-
-            if (estadoAnterior != u.getEstadoUsuario()) {
-                UsuarioDAO.actualizarEstadoYActividad(
-                        u.getCodigoSeguridad(),
-                        u.getEstadoUsuario(),
-                        u.getUltimaActividad()
-                );
-
-                if (u.getEstadoUsuario() == Usuario.EstadoUsuario.BLOQUEADO) {
-                    AuditoriaDAO.registrar(
-                            u.getCodigoSeguridad(),
-                            "Usuario bloqueado por inactividad"
-                    );
-                }
-            }
-        });
-    }
-
     public void desbloquearUsuario(String adminCodigo, String adminPass, String codigoUsuario) {
         Map<String, Usuario> lista = cargarUsuarios();
         Usuario admin = login(lista, adminCodigo, adminPass);
@@ -94,8 +76,8 @@ public class UsuarioServicio {
         );
     }
 
-    public static void mostrarOrdenadosPorActividad() {
-        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+    public void mostrarOrdenadosPorActividad() {
+        Map<String, Usuario> lista = dao.cargarTodos();
         lista.values().stream()
                 .sorted(Comparator.comparing(
                         Usuario::getUltimaActividad,
@@ -104,8 +86,8 @@ public class UsuarioServicio {
                 .forEach(System.out::println);
     }
 
-    public static void mostrarUsuarios() {
-        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+    public void mostrarUsuarios() {
+        Map<String, Usuario> lista = dao.cargarTodos();
         if (lista.isEmpty()) {
             System.out.println("No hay usuarios creados aún");
         } else {
@@ -114,7 +96,7 @@ public class UsuarioServicio {
     }
 
     public void buscarUsuarioPorCodigoServicio(String codigo) {
-        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+        Map<String, Usuario> lista = dao.cargarTodos();
         Usuario encontrado = lista.get(codigo);
         if (encontrado != null) {
             encontrado.actualizarActividad();
@@ -126,8 +108,8 @@ public class UsuarioServicio {
         }
     }
 
-    public static void verificarInactividadServicio() {
-        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+    public void verificarInactividad() {
+        Map<String, Usuario> lista = dao.cargarTodos();
         lista.values().forEach(u -> {
             Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
             u.actualizarEstadoPorInactividad();
