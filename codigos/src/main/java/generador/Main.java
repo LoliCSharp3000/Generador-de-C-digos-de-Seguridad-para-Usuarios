@@ -10,7 +10,6 @@ import java.util.Scanner;
  */
 
 public class Main {
-    
     public static void main(String[] args) {
         UsuarioServicio servicio = new UsuarioServicio();
         Controlador controlador = new Controlador(servicio);
@@ -21,13 +20,13 @@ public class Main {
                 try {
                     int input = Integer.parseInt(sc.nextLine());
                     OpcionMenu opcion = OpcionMenu.fromCodigo(input);
-                    if (opcion != null) {
+                    if (opcion == null) {
+                        System.out.println("Error: opción no encontrada. Por favor seleccione una opción válida.");
+                    } else {
                         opcion.ejecutar(ctx);
                     }
                 } catch(NumberFormatException e){
                     System.out.println("Error: entrada no válida. Por favor ingrese un número.");
-                } catch(NullPointerException e){
-                    System.out.println("Error: opción no encontrada. Por favor seleccione una opción válida.");
                 } catch(IllegalArgumentException e){
                     System.out.println("Error: " + e.getMessage());
                 } catch(Exception e){

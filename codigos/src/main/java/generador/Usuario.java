@@ -32,7 +32,6 @@ public class Usuario {
     private EstadoUsuario estadoUsuario;
     private final LocalDate fechaDeCreacion;
     private LocalDate ultimaActividad;
-    private static final int min_nombre = 3;
     private static final int max_dias_inactivo = 30;
     private static final int max_dias_bloqueado = 60;
     private String passwordHash;
@@ -43,35 +42,6 @@ public class Usuario {
         } catch (Exception e) {
             return defaultValue;
         }
-    }
-
-    public Usuario(String nombre, int opc, String password) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("Debes poner el nombre correctamente");
-        }
-        if (nombre.trim().length() < min_nombre) {
-            throw new IllegalArgumentException("El nombre es demasiado corto");
-        }
-        if (nombre.matches(".*\\d.*")) {
-            throw new IllegalArgumentException("El nombre no puede contener números");
-        }
-        this.nombre = nombre;
-        TipoDeUsuario tipo;
-        switch (opc) {
-            case 1 -> tipo = TipoDeUsuario.NORMAL;
-            case 2 -> tipo = TipoDeUsuario.PREMIUM;
-            case 3 -> tipo = TipoDeUsuario.ADMIN;
-            default -> throw new IllegalArgumentException("Pon el numero correcto");
-        };
-        this.tipoDeUsuario = tipo;
-        this.estadoUsuario = EstadoUsuario.ACTIVO;
-        this.codigoSeguridad = generarCodigoSeguro(tipoDeUsuario.longitudDeCodigo);
-        this.fechaDeCreacion = LocalDate.now();
-        this.ultimaActividad = LocalDate.now();
-        if (password.length() < 7) {
-            throw new IllegalArgumentException("La contraseña debe tener al menos 7 caracteres");   
-        }
-        this.passwordHash = hashPassword(password);
     }
 
     private Usuario(String nombre, TipoDeUsuario tipo, EstadoUsuario estado, String codigo, LocalDate fechaCreacion, LocalDate ultimaActividad, String passwordHash) {
@@ -104,6 +74,13 @@ public class Usuario {
             passwordHash
         );
     }
+
+    public static Usuario crearUsuario(String nombre, TipoDeUsuario tipo, String password) {
+        String codigo = RandomStringUtils.random(tipo.getLongitudDeCodigo(), true, true).toUpperCase();
+        String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
+        return new Usuario(nombre, tipo, EstadoUsuario.ACTIVO, codigo, LocalDate.now(), LocalDate.now(), hash);
+    }
+
     public LocalDate getFechaDeCreacion() {
         return fechaDeCreacion;
     }
@@ -142,23 +119,8 @@ public class Usuario {
     }
     @Override
     public String toString() {
-        return """
-           Usuario {
-             nombre='%s',
-             tipo=%s,
-             estado=%s,
-             codigo='%s',
-             creado=%s,
-             diasActivo=%d
-           }
-           """.formatted(
-                nombre,
-                tipoDeUsuario,
-                estadoUsuario,
-                codigoSeguridad,
-                fechaDeCreacion,
-                diasDespuesDeCreacion()
-           );
+        return String.format("Usuario{nombre='%s', codigoSeguridad='%s', tipoDeUsuario=%s, estadoUsuario=%s, fechaDeCreacion=%s, ultimaActividad=%s}", 
+            nombre, codigoSeguridad, tipoDeUsuario, estadoUsuario, fechaDeCreacion, ultimaActividad);
     }
 
 
@@ -177,10 +139,6 @@ public class Usuario {
     @Override
     public int hashCode() {
         return codigoSeguridad.hashCode();
-    }
-
-    private static String generarCodigoSeguro(int longitud){
-        return RandomStringUtils.random(longitud, true, true).toUpperCase();
     }
 
     public void actualizarEstadoPorInactividad() {
@@ -205,10 +163,6 @@ public class Usuario {
         }
         this.estadoUsuario = EstadoUsuario.ACTIVO;
         this.ultimaActividad = LocalDate.now();
-    }
-
-    private String hashPassword(String password) {
-        return BCrypt.hashpw(password, BCrypt.gensalt(12));
     }
 
     public boolean verificarPassword(String password) {

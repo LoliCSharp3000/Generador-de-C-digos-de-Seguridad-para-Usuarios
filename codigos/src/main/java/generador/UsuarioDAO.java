@@ -31,7 +31,7 @@ public class UsuarioDAO {
 
     }
 
-    public Map<String, Usuario> cargarTodos() { 
+    public static Map<String, Usuario> cargarTodos() { 
         String sql = "SELECT * FROM usuarios;";
         Map<String, Usuario> usuarios = new HashMap<>();
         try (Connection c = Database.conectar();

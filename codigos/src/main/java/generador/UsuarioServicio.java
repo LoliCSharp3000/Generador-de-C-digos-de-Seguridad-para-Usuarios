@@ -3,20 +3,30 @@ package generador;
 import java.util.Comparator;
 import java.util.Map;
 
+import generador.Usuario.TipoDeUsuario;
+
 public class UsuarioServicio {
-    private final UsuarioDAO dao;
-
-    public UsuarioServicio() {
-        this.dao = new UsuarioDAO();
-    }
-
-    private Map<String, Usuario> cargarUsuarios() {
-        return dao.cargarTodos();
-    }
+    private static final int min_nombre = 3;
 
     public void crearUsuario(String nombre, int tipo, String password) {
-        Map<String, Usuario> lista = cargarUsuarios();
-        Usuario usuario = new Usuario(nombre, tipo, password);
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new IllegalArgumentException("Debes poner el nombre correctamente");
+        }
+        if (nombre.trim().length() < min_nombre) {
+            throw new IllegalArgumentException("El nombre es demasiado corto");
+        }
+        if (nombre.matches(".*\\d.*")) {
+            throw new IllegalArgumentException("El nombre no puede contener números");
+        }
+        TipoDeUsuario tipoDeUsuario = null;
+        switch (tipo) {
+            case 1 -> tipoDeUsuario = Usuario.TipoDeUsuario.NORMAL;
+            case 2 -> tipoDeUsuario = Usuario.TipoDeUsuario.PREMIUM;
+            case 3 -> tipoDeUsuario = Usuario.TipoDeUsuario.ADMIN;
+            default -> throw new IllegalArgumentException("Pon el numero correcto");
+        };
+        Usuario usuario = Usuario.crearUsuario(nombre, tipoDeUsuario, password);
 
         if (lista.containsKey(usuario.getCodigoSeguridad())) {
             throw new IllegalArgumentException("Ese usuario ya existe");
@@ -54,7 +64,7 @@ public class UsuarioServicio {
     }
 
     public void desbloquearUsuario(String adminCodigo, String adminPass, String codigoUsuario) {
-        Map<String, Usuario> lista = cargarUsuarios();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         Usuario admin = login(lista, adminCodigo, adminPass);
 
         if (admin.getTipoDeUsuario() != Usuario.TipoDeUsuario.ADMIN) {
@@ -77,7 +87,7 @@ public class UsuarioServicio {
     }
 
     public void mostrarOrdenadosPorActividad() {
-        Map<String, Usuario> lista = dao.cargarTodos();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         lista.values().stream()
                 .sorted(Comparator.comparing(
                         Usuario::getUltimaActividad,
@@ -87,7 +97,7 @@ public class UsuarioServicio {
     }
 
     public void mostrarUsuarios() {
-        Map<String, Usuario> lista = dao.cargarTodos();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         if (lista.isEmpty()) {
             System.out.println("No hay usuarios creados aún");
         } else {
@@ -96,7 +106,7 @@ public class UsuarioServicio {
     }
 
     public void buscarUsuarioPorCodigoServicio(String codigo) {
-        Map<String, Usuario> lista = dao.cargarTodos();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         Usuario encontrado = lista.get(codigo);
         if (encontrado != null) {
             encontrado.actualizarActividad();
@@ -109,7 +119,7 @@ public class UsuarioServicio {
     }
 
     public void verificarInactividad() {
-        Map<String, Usuario> lista = dao.cargarTodos();
+        Map<String, Usuario> lista = UsuarioDAO.cargarTodos();
         lista.values().forEach(u -> {
             Usuario.EstadoUsuario estadoAnterior = u.getEstadoUsuario();
             u.actualizarEstadoPorInactividad();
