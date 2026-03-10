@@ -2,33 +2,26 @@ package generador;
 
 public enum OpcionMenu {
     
-    CREAR_USUARIO(1, "Crear usuario", null),
-    VER_USUARIOS(2, "Ver usuarios", null),
-    SALIR(3, "Salir", null),
-    BUSCAR_USUARIO(4, "Buscar usuario por código", null),
-    VERIFICAR_INACTIVIDAD(5, "Verificar inactividad", null),
-    DESBLOQUEAR(6, "Desbloquear usuario (admin)", null),
-    MOSTRAR_POR_ACTIVIDAD(7, "Mostrar usuarios por última actividad", null);
+    CREAR_USUARIO(1, "Crear usuario", ctx -> ctx.getControlador().crearUsuario(ctx.scanner())),
+    VER_USUARIOS(2, "Ver usuarios", ctx -> ctx.getControlador().mostrarUsuarios()),
+    SALIR(3, "Salir", ctx -> ctx.salir()),
+    BUSCAR_USUARIO(4, "Buscar usuario por código", ctx -> ctx.getControlador().buscarUsuarioPorCodigo(ctx.scanner())),
+    VERIFICAR_INACTIVIDAD(5, "Verificar inactividad", ctx -> ctx.getControlador().verificarInactividad()),
+    DESBLOQUEAR(6, "Desbloquear usuario (admin)", ctx -> ctx.getControlador().desbloquearUsuario(ctx.scanner())),
+    MOSTRAR_POR_ACTIVIDAD(7, "Mostrar usuarios por última actividad", ctx -> ctx.getControlador().mostrarPorActividad());
 
     private final int codigo;
     private final String descripcion;
-    private Controlador controlador;
+    private final AccionConContexto accion;
 
-    OpcionMenu(int codigo, String descripcion, Controlador controlador) {
+    OpcionMenu(int codigo, String descripcion, AccionConContexto accion) {
         this.codigo = codigo;
         this.descripcion = descripcion;
-        this.controlador = controlador;
+        this.accion = accion;
     }
 
-    public void setControlador(Controlador controlador) {
-        // Este método se usará para inyectar el controlador después de su creación
-        // debido a la dependencia circular entre Controlador y OpcionMenu
-        // (Controlador necesita OpcionMenu para mostrar el menú, y OpcionMenu necesita Controlador para ejecutar acciones)
-        this.controlador = controlador;
-    }
-
-    public Controlador getControlador() {
-        return controlador;
+    public AccionConContexto getAccion() {
+        return accion;
     }
 
     public int getCodigo() {
@@ -40,16 +33,7 @@ public enum OpcionMenu {
     }
 
     public void ejecutar(Contexto ctx){
-        switch(this){
-            case CREAR_USUARIO -> controlador.crearUsuario(ctx.scanner());
-            case VER_USUARIOS -> controlador.mostrarUsuarios();
-            case SALIR -> ctx.salir();
-            case BUSCAR_USUARIO -> controlador.buscarUsuarioPorCodigo(ctx.scanner());
-            case DESBLOQUEAR -> controlador.desbloquearUsuario(ctx.scanner());
-            case VERIFICAR_INACTIVIDAD -> controlador.verificarInactividad();
-            case MOSTRAR_POR_ACTIVIDAD -> controlador.mostrarPorActividad();
-            default -> throw new UnsupportedOperationException("Opción no implementada");
-        }
+        accion.ejecutar(ctx);
     }
 
     public static OpcionMenu fromCodigo(int codigo) {
